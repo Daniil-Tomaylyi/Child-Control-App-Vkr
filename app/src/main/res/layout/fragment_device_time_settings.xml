@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".devicetimesettings.DeviceTimeSettingsFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/limitTimeDeviceTittleText"
+            style="@style/Title_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/limit_time_device"
+            android:textColor="?attr/colorPrimary"
+            app:layout_constraintBottom_toTopOf="@+id/limitTimeDeviceDescriptionText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/deviceTimeSettingTittleText" />
+
+        <TextView
+            android:id="@+id/limitTimeDeviceDescriptionText"
+            style="@style/Description_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/limit_time_device_description"
+            android:textColor="?attr/colorPrimary"
+            app:layout_constraintBottom_toTopOf="@+id/limitTimeDeviceSpinner"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/limitTimeDeviceTittleText" />
+
+        <Spinner
+            android:id="@+id/limitTimeDeviceSpinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toTopOf="@+id/scheduledBanTittleText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/limitTimeDeviceDescriptionText" />
+
+        <TextView
+            android:id="@+id/scheduledBanTittleText"
+            style="@style/Title_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/scheduled_access_text_tittle"
+            android:textColor="?attr/colorPrimary"
+            app:layout_constraintBottom_toTopOf="@+id/scheduledBanDescriptionText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/limitTimeDeviceSpinner" />
+
+        <TextView
+            android:id="@+id/scheduledBanDescriptionText"
+            style="@style/Description_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/scheduled_access_description_text"
+            android:textColor="?attr/colorPrimary"
+            app:layout_constraintBottom_toTopOf="@+id/addDeviceBannedTimeButton"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/scheduledBanTittleText" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/addDeviceBannedTimeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_bg"
+            android:text="@string/add_scheduled_access_button"
+            android:textColor="@color/white"
+            app:layout_constraintBottom_toTopOf="@+id/deviceBannedTimeRecyclerView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.498"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/scheduledBanDescriptionText" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/deviceBannedTimeRecyclerView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toTopOf="@+id/settingsTimeDeviceCancelButton"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/addDeviceBannedTimeButton" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/settingsTimeDeviceSaveButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/button_bg"
+            android:text="@string/Settings_time_device_save_button"
+            android:textColor="@color/white"
+            app:layout_constraintBaseline_toBaselineOf="@+id/settingsTimeDeviceCancelButton"
+            app:layout_constraintEnd_toStartOf="@+id/settingsTimeDeviceCancelButton"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/settingsTimeDeviceCancelButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/button_bg"
+            android:text="@string/Settings_time_device_cancel_button"
+            android:textColor="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/settingsTimeDeviceSaveButton"
+            app:layout_constraintTop_toBottomOf="@+id/deviceBannedTimeRecyclerView" />
+
+        <TextView
+            android:id="@+id/deviceTimeSettingTittleText"
+            style="@style/Title_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/Settings_time_device"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="34sp"
+            app:layout_constraintBottom_toTopOf="@+id/limitTimeDeviceTittleText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

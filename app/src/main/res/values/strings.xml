@@ -1,0 +1,78 @@
+<resources>
+    <string name="app_name">Child Control</string>
+    <string name="receiver_name">Admin permission</string>
+    <string name="service_name">App locker</string>
+    <string name="who_you">Кто ты?</string>
+    <string name="parent">Родитель</string>
+    <string name="child">Ребенок</string>
+    <string name="image_greeting_description">Приветствие</string>
+    <string name="user_greeting_title">Добро пожаловать в наше приложение!</string>
+    <string name="user_greeting_description">Мы поможем вам эффективно управлять временем,
+    проведенным в виртуальном мире вашего ребенка. Настраивайте график, установите ограничения и
+    следите за активностью вашего ребенка в смартфоне. Давайте вместе сделаем его онлайн-присутствие более осознанным
+    и продуктивным!</string>
+    <string name="start_button">Начинаем</string>
+    <string name="Create_tittle">Создайте общий аккаунт для родителей и детей</string>
+    <string name="Create_description">Чтобы вы могли свободно пользоваться приложением</string>
+    <string name="Button_create">Создать аккаунт</string>
+    <string name="button_auth">Войти</string>
+    <string name="text_auth">Войдите в свой аккаунт Child Control</string>
+    <string name="pass_rec">Забыли пароль?</string>
+    <string name="password_text">Пароль</string>
+    <string name="email_text">Электронная почта</string>
+    <string name="text_reg">Создайте аккаунт для использования приложения</string>
+    <string name="reg_error_message">Неверный формат почты или пароля</string>
+    <string name="advice_message">Требование к паролю:\n\u2022 Не менее 8 символов
+        \n\u2022 Не менее одной цифры\n\u2022 Только допустимые символы</string>
+    <string name="error_msg_auth">Неверный логин или пароль</string>
+    <string name="add_child">Добавить ребенка</string>
+    <string name="hello_child">Привет! Что будем делать?</string>
+    <string name="time_spent_device">Время проведенное за устройством</string>
+    <string name="settings_text">Настройки</string>
+    <string name="notice_button">Уведомление</string>
+    <string name="Report">Отчет</string>
+    <string name="tittle_forgot_pass">Сброс пароля</string>
+    <string name="description_forgot_pass">Введите адрес электронной почты для сброса пароля</string>
+    <string name="forgot_pass_button">Сбросить пароль</string>
+    <string name="error_msg_forgot_pass">Формат электронной почты неверен</string>
+    <string name="add_child_text_tittle">Добавить ребенка</string>
+    <string name="add_Child_text_description">Добавьте имя и год рождения ребенка</string>
+    <string name="text_button_add_child">Создать</string>
+    <string name="image_add_child_description">Аватар ребенка</string>
+    <string name="add_child_hint">Имя ребенка</string>
+    <string name="map_button">Карта</string>
+    <string name="button_report">Обзор</string>
+    <string name="button_notification">Отчет</string>
+    <string name="button_script">Сценарии</string>
+    <string name="lock_phone">Блокировать устройство</string>
+    <string name="lock_application">Заблокировать приложения</string>
+    <string name="stat_app">Статистика приложений</string>
+    <string name="title_text_app_list">Список приложений на устройстве</string>
+    <string name="lock_app_switch">Заблокировать приложение</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="text_lock_app_child">Приложение заблокировано по требованию родителя</string>
+    <string name="lock_tittle_message_child">Пора отдохнуть</string>
+    <string name="text_lock_device_child">Родитель заблокировал устройство</string>
+    <string name="text_year_birth_child">Год рождения</string>
+    <string name="Delete_app">Удалить приложение</string>
+    <string name="info_app_text">О программе</string>
+    <string name="text_сhoice_theme">Темная тема</string>
+    <string name="limit_time_device">Лимит времени за устройством</string>
+    <string name="Back_button">Назад</string>
+    <string name="info_app_text_description">
+        Приложение Child Control - ваш надежный союзник в обеспечении безопасности ваших детей в интернете.
+        Наше приложение разработано с целью предоставить вам инструменты для контроля и мониторинга активности ваших детей в онлайн пространстве.
+       </string>
+    <string name="Settings_time_device">Контроль времени на устройстве</string>
+    <string name="limit_time_device_description">Установите ограничения времени использования устройства в течении 24 часов</string>
+    <string name="scheduled_access_text_tittle">Ограничения доступа по расписанию</string>
+    <string name="scheduled_access_description_text">Добавьте временные интервалы когда ребенок не сможет пользоваться устройством</string>
+    <string name="add_scheduled_access_button">Добавить</string>
+    <string name="Settings_time_device_short_text">Контроль времени</string>
+    <string name="Settings_time_device_save_button">Сохранение</string>
+    <string name="Settings_time_device_cancel_button">Отмена</string>
+    <string name="change_device_banned_time_button">Изменить</string>
+    <string name="delete_device_banned_time_button">Удалить</string>
+    <string name="banned_time">%1$s:%2$s - %3$s:%4$s</string>
+</resources>

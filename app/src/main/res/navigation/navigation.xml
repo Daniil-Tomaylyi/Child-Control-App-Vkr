@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation"
+    app:startDestination="@id/startFragment">
+    <fragment
+        android:id="@+id/roleFragment"
+        android:name="com.example.childcontrol.role.RoleFragment"
+        android:label="fragment_role"
+        tools:layout="@layout/fragment_role" >
+        <action
+            android:id="@+id/action_roleFragment_to_headChildFragment"
+            app:destination="@id/headChildFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/action_roleFragment_to_headParentFragment"
+            app:destination="@id/headParentFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popUpToInclusive="false" />
+        <action
+            android:id="@+id/action_roleFragment_to_addChildFragment"
+            app:destination="@id/addChildFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+    </fragment>
+    <fragment
+        android:id="@+id/startFragment"
+        android:name="com.example.childcontrol.start.StartFragment"
+        android:label="fragment_start"
+        tools:layout="@layout/fragment_start" >
+        <action
+            android:id="@+id/action_startFragment_to_tittleFragment"
+            app:destination="@id/tittleFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+    </fragment>
+    <fragment
+        android:id="@+id/tittleFragment"
+        android:name="com.example.childcontrol.tittle.TittleFragment"
+        android:label="TittleFragment" >
+        <action
+            android:id="@+id/action_tittleFragment_to_regFragment"
+            app:destination="@id/regFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/action_tittleFragment_to_authFragment"
+            app:destination="@id/authFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+    </fragment>
+    <fragment
+        android:id="@+id/regFragment"
+        android:name="com.example.childcontrol.reg.RegFragment"
+        android:label="fragment_reg"
+        tools:layout="@layout/fragment_reg" >
+        <action
+            android:id="@+id/action_regFragment_to_authFragment"
+            app:destination="@id/authFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out"
+            app:popUpTo="@id/regFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/authFragment"
+        android:name="com.example.childcontrol.auth.AuthFragment"
+        android:label="fragment_auth"
+        tools:layout="@layout/fragment_auth" >
+        <action
+            android:id="@+id/action_authFragment_to_roleFragment"
+            app:destination="@id/roleFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popUpToInclusive="false" />
+        <action
+            android:id="@+id/action_authFragment_to_regFragment"
+            app:destination="@id/regFragment"
+            app:enterAnim="@android:anim/slide_in_left"
+            app:exitAnim="@android:anim/slide_out_right"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out"
+            app:popUpTo="@id/authFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_authFragment_to_forgotPassFragment"
+            app:destination="@id/forgotPassFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+    </fragment>
+    <fragment
+        android:id="@+id/headChildFragment"
+        android:name="com.example.childcontrol.headchild.HeadChildFragment"
+        android:label="fragment_head_child"
+        tools:layout="@layout/fragment_head_child" >
+        <action
+            android:id="@+id/action_headChildFragment_to_settingsChildFragment"
+            app:destination="@id/settingsChildFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+    </fragment>
+    <fragment
+        android:id="@+id/headParentFragment"
+        android:name="com.example.childcontrol.headparent.HeadParentFragment"
+        android:label="fragment_head_parent"
+        tools:layout="@layout/fragment_head_parent" >
+        <action
+            android:id="@+id/action_headParentFragment_to_settingsParentFragment"
+            app:destination="@id/settingsParentFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/action_headParentFragment_to_parentMapFragment"
+            app:destination="@id/parentMapFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/action_headParentFragment_to_addChildFragment"
+            app:destination="@id/addChildFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/action_headParentFragment_to_appListFragment"
+            app:destination="@id/appListFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+    </fragment>
+    <fragment
+        android:id="@+id/forgotPassFragment"
+        android:name="com.example.childcontrol.forgotpass.ForgotPassFragment"
+        android:label="fragment_forgot_pass"
+        tools:layout="@layout/fragment_forgot_pass" >
+        <action
+            android:id="@+id/action_forgotPassFragment_to_authFragment"
+            app:destination="@id/authFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/addChildFragment"
+        android:name="com.example.childcontrol.addchild.AddChildFragment"
+        android:label="fragment_add_child"
+        tools:layout="@layout/fragment_add_child" >
+        <action
+            android:id="@+id/action_addChildFragment_to_headParentFragment"
+            app:destination="@id/headParentFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popUpTo="@id/addChildFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_addChildFragment_to_headChildFragment"
+            app:destination="@id/headChildFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popUpTo="@id/addChildFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/settingsChildFragment"
+        android:name="com.example.childcontrol.settingschild.SettingsChildFragment"
+        android:label="fragment_settings_child"
+        tools:layout="@layout/fragment_settings_child" >
+        <action
+            android:id="@+id/action_settingsChildFragment_to_headChildFragment"
+            app:destination="@id/headChildFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/action_settingsChildFragment_to_infoAppFragment"
+            app:destination="@id/infoAppFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
+    </fragment>
+    <fragment
+        android:id="@+id/parentMapFragment"
+        android:name="com.example.childcontrol.parentmap.ParentMapFragment"
+        android:label="fragment_parent_map"
+        tools:layout="@layout/fragment_parent_map" >
+        <action
+            android:id="@+id/action_parentMapFragment_to_headParentFragment"
+            app:destination="@id/headParentFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/action_parentMapFragment_to_settingsParentFragment"
+            app:destination="@id/settingsParentFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+    </fragment>
+    <fragment
+        android:id="@+id/settingsParentFragment"
+        android:name="com.example.childcontrol.settingsparent.SettingsParentFragment"
+        android:label="fragment_settings_parent"
+        tools:layout="@layout/fragment_settings_parent" >
+        <action
+            android:id="@+id/action_settingsParentFragment_to_headParentFragment"
+            app:destination="@id/headParentFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/action_settingsParentFragment_to_parentMapFragment"
+            app:destination="@id/parentMapFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/action_settingsParentFragment_to_infoAppFragment"
+            app:destination="@id/infoAppFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/action_settingsParentFragment_to_deviceTimeSettingsFragment"
+            app:destination="@id/deviceTimeSettingsFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
+    </fragment>
+    <fragment
+        android:id="@+id/appListFragment"
+        android:name="com.example.childcontrol.applist.AppListFragment"
+        android:label="fragment_app_list"
+        tools:layout="@layout/fragment_app_list" />
+    <fragment
+        android:id="@+id/infoAppFragment"
+        android:name="com.example.childcontrol.infoapp.InfoAppFragment"
+        android:label="fragment_info_app"
+        tools:layout="@layout/fragment_info_app" />
+    <fragment
+        android:id="@+id/deviceTimeSettingsFragment"
+        android:name="com.example.childcontrol.devicetimesettings.DeviceTimeSettingsFragment"
+        android:label="fragment_device_time_settings"
+        tools:layout="@layout/fragment_device_time_settings" >
+        <action
+            android:id="@+id/action_deviceTimeSettingsFragment_to_settingsParentFragment"
+            app:destination="@id/settingsParentFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popUpTo="@id/deviceTimeSettingsFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+</navigation>
