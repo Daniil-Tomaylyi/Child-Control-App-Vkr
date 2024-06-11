@@ -50,16 +50,19 @@ class HeadChildFragmentRepository(
         }
     }
 
-    fun getDeviceTimeLimitsLockStatus(): String? {
+    fun getDeviceTimeLimitsLockStatus(callback: (String?) -> Unit) {
+
         deviceLimitTimeDeviceLockRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 limitTimeDevice = dataSnapshot.getValue(String::class.java)
+                callback(limitTimeDevice)
             }
 
             override fun onCancelled(error: DatabaseError) {
             }
         })
-        return limitTimeDevice
+        Log.w("limitTimeDeviceRepository",limitTimeDevice.toString())
+
     }
 
     fun getDeviceBlockStatus(): Boolean? {
@@ -79,7 +82,9 @@ class HeadChildFragmentRepository(
     fun getDeviceUsage(): DeviceUsage {
         DeviceUsageRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                DeviceUsage = dataSnapshot.getValue(DeviceUsage::class.java)!!
+                if (dataSnapshot.exists()) {
+                    DeviceUsage = dataSnapshot.getValue(DeviceUsage::class.java)!!
+                }
             }
 
             override fun onCancelled(error: DatabaseError) {

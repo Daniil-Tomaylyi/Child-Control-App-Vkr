@@ -21,12 +21,10 @@ import com.gun0912.tedpermission.provider.TedPermissionProvider.context
 
 
 class AppBlockerService : Service() {
-    companion object {
-        var lockApps: List<lockApp>? = null
-        var newlockApps: List<lockApp>? = null
-        const val NOTIFICATION_ID = 1
-    }
 
+    private var lockApps: List<lockApp>? = null
+    private var newlockApps: List<lockApp>? = null
+    private val NOTIFICATION_ID = 1
     val mAuth = FirebaseAuth.getInstance()
     val database = FirebaseDatabase.getInstance()
     private val headChildFragmentRepository = HeadChildFragmentRepository(mAuth, database)
@@ -50,15 +48,13 @@ class AppBlockerService : Service() {
 
                 }
             }
-            handler.postDelayed(this, 10000) // Периодический запуск каждую секунду
+            handler.postDelayed(this, 10000)
         }
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        // Здесь можно реализовать логику блокировки приложений
-        // Например, проверять список запущенных приложений и блокировать их запуск
         startForegroundService()
-        handler.post(runnableCode) // Запуск проверки при старте сервиса
+        handler.post(runnableCode)
         return START_STICKY
     }
 
@@ -70,7 +66,7 @@ class AppBlockerService : Service() {
 
     private fun createNotification(): Notification {
         val notificationChannelId = "APP_BLOCKER_CHANNEL_ID"
-        val channelName = "App Blocker Service"
+        val channelName = "Уведомления о блокировки приложений"
         val channelDescription = "Notification for App Blocker Service"
         val notificationChannel = NotificationChannel(
             notificationChannelId,
@@ -94,14 +90,14 @@ class AppBlockerService : Service() {
         val usageStatsManager =
             context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val timeNow = System.currentTimeMillis()
-        // Используйте интервал времени, подходящий для вашего случая
+
         val stats = usageStatsManager.queryUsageStats(
             UsageStatsManager.INTERVAL_DAILY,
             timeNow - 1000 * 60 * 60,
             timeNow
         )
 
-        // Проверяем, является ли приложение с данным пакетом тем, что использовалось последним
+
         val foregroundApp = stats.maxByOrNull { it.lastTimeUsed }
 
         return foregroundApp != null && foregroundApp.packageName == packageName

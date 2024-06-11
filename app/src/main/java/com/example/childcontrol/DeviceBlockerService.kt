@@ -30,6 +30,8 @@ class DeviceBlockerService() : Service() {
     private var newLimitTimeDevice: Int? = null
     private var currentTimeDevice = LocalTime.now()
     private var deviceUsageTime: DeviceUsage? = null
+    private lateinit var notificationManager:NotificationManager
+    private lateinit var notificationChannel: NotificationChannel
     private val mAuth = FirebaseAuth.getInstance()
     private val database = FirebaseDatabase.getInstance()
     private val headChildFragmentRepository = HeadChildFragmentRepository(mAuth, database)
@@ -53,43 +55,54 @@ class DeviceBlockerService() : Service() {
     }
     private val runnableCodeHourDevice = object : Runnable {
         override fun run() {
-            limitTimeDevice =
-                headChildFragmentRepository.getDeviceTimeLimitsLockStatus()?.replace(" ч", "")
-                    ?.toInt() ?: 0
+            headChildFragmentRepository.getDeviceTimeLimitsLockStatus { limitTimeDeviceValue ->
+                limitTimeDevice = limitTimeDeviceValue?.replace(" ч", "")?.toInt() ?: 0
+
             deviceUsageTime = headChildFragmentRepository.getDeviceUsage()
             if (limitTimeDevice != 0) {
+
                 if (newLimitTimeDevice != limitTimeDevice) {
                     if (deviceUsageTime!!.usageHours.toInt() == limitTimeDevice) {
                         lockdevice()
                         newLimitTimeDevice = limitTimeDevice
-                    } else {
+                    }
+                    if (deviceUsageTime!!.usageHours.toInt() == 0) {
                         unlockdevice()
                         newLimitTimeDevice = limitTimeDevice
                     }
+                    if (deviceUsageTime!!.usageHours.toInt() == limitTimeDevice!! - 1){
+                        createNotifyUsageTimeout()
+
+                    }
                 }
             }
-            handler.postDelayed(this, 5000)
+            }
+            handler.postDelayed(this, 3600000)
         }
     }
+
+    private fun createNotifyUsageTimeout() {
+
+        notificationManager = getSystemService(NotificationManager::class.java)
+        notificationChannel = NotificationChannel("DEVICE_BLOCKER_CHANNEL_ID", "Уведомления о блокировки устройства", NotificationManager.IMPORTANCE_DEFAULT)
+        notificationManager.createNotificationChannel(notificationChannel)
+
+        val builder = NotificationCompat.Builder(this, "DEVICE_BLOCKER_CHANNEL_ID")
+            .setSmallIcon(R.drawable.free_icon_notification_3239952)
+            .setContentTitle("Устройство скоро будет заблокировано")
+            .setContentText("Cкоро вы израсходуете весь ваш лимит пользования устройством выделенный на день")
+        notificationManager.notify(NOTIFICATION_ID, builder.build())
+    }
+
     private val runnableBannedTimeDevice = object : Runnable {
         override fun run() {
             bannedTimesDevice = headChildFragmentRepository.getBannedTimeDevice()
             currentTimeDevice = LocalTime.now()
             bannedTimesDevice?.forEach { bannedTime ->
                 newBannedTimesDevice?.forEach { newBannedTimeDevice ->
-                    Log.w("currentTimeDevice hour", currentTimeDevice.hour.toString())
-                    Log.w("currentTimeDevice minute", currentTimeDevice.minute.toString())
                     if (newBannedTimeDevice != bannedTime) {
                         if (bannedTime.start_time_hours == currentTimeDevice.hour) {
                             if (bannedTime.start_time_minutes == currentTimeDevice.minute) {
-                                Log.w(
-                                    "currentTimeDevice hour lock",
-                                    bannedTime.start_time_hours.toString()
-                                )
-                                Log.w(
-                                    "currentTimeDevice minute lock",
-                                    bannedTime.start_time_minutes.toString()
-                                )
                                 lockdevice()
                                 newBannedTimeDevice.start_time_hours = bannedTime.start_time_hours
                                 newBannedTimeDevice.start_time_minutes =
@@ -98,14 +111,6 @@ class DeviceBlockerService() : Service() {
                         }
                         if (bannedTime.end_time_hours == currentTimeDevice.hour) {
                             if (bannedTime.end_time_minutes == currentTimeDevice.minute) {
-                                Log.w(
-                                    "currentTimeDevice hour unlock",
-                                    bannedTime.end_time_hours.toString()
-                                )
-                                Log.w(
-                                    "currentTimeDevice minute unlock",
-                                    bannedTime.end_time_minutes.toString()
-                                )
                                 unlockdevice()
                                 newBannedTimeDevice.end_time_hours = bannedTime.end_time_hours
                                 newBannedTimeDevice.end_time_minutes = bannedTime.end_time_minutes
@@ -114,7 +119,7 @@ class DeviceBlockerService() : Service() {
                     }
                 }
             }
-            handler.postDelayed(this, 10000)
+            handler.postDelayed(this, 60000)
         }
     }
 
@@ -134,7 +139,7 @@ class DeviceBlockerService() : Service() {
 
     private fun createNotification(): Notification {
         val notificationChannelId = "DEVICE_BLOCKER_CHANNEL_ID"
-        val channelName = "Device Blocker Service"
+        val channelName = "Уведомления о блокировки устройства"
         val channelDescription = "Notification for Device Blocker Service"
         val notificationChannel = NotificationChannel(
             notificationChannelId,

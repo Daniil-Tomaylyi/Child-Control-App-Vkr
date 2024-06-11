@@ -6,7 +6,5 @@
         <reset-password />
         <force-lock />
         <wipe-data />
-        <expire-password />
-        <disable-camera />
     </uses-policies>
 </device-admin>

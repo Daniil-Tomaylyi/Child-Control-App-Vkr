@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.FragmentManager
 import androidx.navigation.findNavController
@@ -29,7 +30,7 @@ class TittleFragment : Fragment() {
             view.findNavController().navigate(R.id.action_tittleFragment_to_regFragment)
         }
         binding.buttonAuthTittle.setOnClickListener { view: View ->
-            view.findNavController().navigate(R.id.action_tittleFragment_to_authFragment)
+            view.findNavController().navigate(R.id.action_tittleFragment_to_authFragment, bundleOf("typeAuth" to "auth"))
         }
         // Проверяем и запрашиваем разрешения
 

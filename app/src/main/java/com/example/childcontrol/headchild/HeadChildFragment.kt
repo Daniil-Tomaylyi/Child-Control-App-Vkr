@@ -2,11 +2,13 @@ package com.example.childcontrol.headchild
 
 import android.Manifest
 import android.app.AppOpsManager
+import android.app.NotificationManager
 import android.app.admin.DevicePolicyManager
 import android.app.usage.UsageStatsManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Process
@@ -17,7 +19,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.core.os.bundleOf
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
@@ -30,7 +32,6 @@ import com.example.childcontrol.DeviceBlockerService
 import com.example.childcontrol.R
 import com.example.childcontrol.admin.MyDeviceAdminReceiver
 import com.example.childcontrol.databinding.FragmentHeadChildBinding
-import com.example.childcontrol.applist.lockApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.gun0912.tedpermission.PermissionListener
@@ -59,7 +60,8 @@ class HeadChildFragment : Fragment() {
     private var myLocation: Point? = null
     private lateinit var devicePolicyManager: DevicePolicyManager
     private lateinit var componentName: ComponentName
-
+    private lateinit var notificationManager: NotificationManager
+    private lateinit var appOps: AppOpsManager
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -70,7 +72,14 @@ class HeadChildFragment : Fragment() {
         binding.buttonHeadChildTittleSettings.setOnClickListener() {
             it.findNavController().navigate(R.id.action_headChildFragment_to_settingsChildFragment)
         }
+
         componentName = ComponentName(requireActivity(), MyDeviceAdminReceiver::class.java)
+        notificationManager = requireActivity().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        appOps = requireActivity().getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+        val mode = appOps.checkOpNoThrow(
+            AppOpsManager.OPSTR_GET_USAGE_STATS,
+            Process.myUid(), requireActivity().packageName
+        )
         val mAuth = FirebaseAuth.getInstance()
         val database = FirebaseDatabase.getInstance()
         val headChildFragmentRepository = HeadChildFragmentRepository(mAuth, database)
@@ -85,6 +94,27 @@ class HeadChildFragment : Fragment() {
             )
         val HeadChildViewModel =
             ViewModelProvider(this, viewModelFactory)[HeadChildViewModel::class.java]
+
+
+        if (!devicePolicyManager.isAdminActive(componentName)) {
+            checkPermissionAdmin()
+        }
+        if (!Settings.canDrawOverlays(context)) {
+            checkPermissionsWindow()
+        }
+        if (!notificationManager.areNotificationsEnabled()) {
+            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+            intent.putExtra(Settings.EXTRA_APP_PACKAGE, context?.packageName)
+            context?.startActivity(intent)
+        }
+        if (ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+            checkPermissions()
+        }
+        if (mode != AppOpsManager.MODE_ALLOWED) {
+            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+        }
+        HeadChildViewModel.updateAppList()
         HeadChildViewModel.usageDevice.observe(viewLifecycleOwner, Observer {
             if (it != null) {
                 Log.w("usageMinutes", it.usageMinutes.toString())
@@ -93,21 +123,8 @@ class HeadChildFragment : Fragment() {
             }
         })
         HeadChildViewModel.updateUsageDevice()
-        if (devicePolicyManager.isAdminActive(componentName)) {
-            if (Settings.canDrawOverlays(context)) {
-                deviceLocker()
-                appLocker()
-            } else {
-                checkPermissionsWindow()
-            }
-        } else {
-            checkPermissionAdmin()
-        }
-        Log.w("isAdminActive", devicePolicyManager.isAdminActive(componentName).toString())
-        checkPermissionStats()
-        checkPermissions()
-        HeadChildViewModel.updateAppList()
-
+        deviceLocker()
+        appLocker()
         return binding.root
     }
 
@@ -127,6 +144,20 @@ class HeadChildFragment : Fragment() {
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
     }
 
+
+
+    private fun appLocker() {
+        val intent = Intent(requireActivity(), AppBlockerService::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        requireActivity().startForegroundService(intent)
+    }
+    private fun deviceLocker() {
+        val intent = Intent(requireActivity(), DeviceBlockerService::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        requireActivity().startForegroundService(intent)
+    }
+
+
     private fun checkPermissionsWindow() {
         val intent = Intent(
             Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -136,39 +167,14 @@ class HeadChildFragment : Fragment() {
         startActivity(intent)
     }
 
-    private fun appLocker() {
-        val intent = Intent(context, AppBlockerService::class.java)
-        context?.startForegroundService(intent)
-    }
-
-    private fun checkPermissionStats() {
-        val appOps = activity?.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager?
-        val mode = appOps!!.checkOpNoThrow(
-            AppOpsManager.OPSTR_GET_USAGE_STATS,
-            Process.myUid(), activity?.getPackageName()!!
-        )
-        if (mode != AppOpsManager.MODE_ALLOWED) {
-            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-        }
-    }
-
-
-    private fun deviceLocker() {
-        val intent = Intent(context, DeviceBlockerService::class.java)
-        context?.startForegroundService(intent)
-    }
-
 
     private fun checkPermissionAdmin() {
-
-
         val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)
         intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, componentName)
         intent.putExtra(
             DevicePolicyManager.EXTRA_ADD_EXPLANATION,
             "Пожалуйста, разрешите приложению получить права администратора устройства"
         )
-
         startActivity(intent)
 
     }
@@ -184,19 +190,11 @@ class HeadChildFragment : Fragment() {
                 } finally {
                     val permissionlistener = object : PermissionListener {
                         override fun onPermissionGranted() {
-                            Toast.makeText(
-                                requireActivity(),
-                                "Доступ разрешен",
-                                Toast.LENGTH_SHORT
-                            ).show()
+
                         }
 
                         override fun onPermissionDenied(deniedPermissions: List<String>) {
-                            Toast.makeText(
-                                requireActivity(),
-                                "Доступ запрещен\n" + deniedPermissions.toString(),
-                                Toast.LENGTH_SHORT
-                            ).show()
+
                         }
                     }
 
