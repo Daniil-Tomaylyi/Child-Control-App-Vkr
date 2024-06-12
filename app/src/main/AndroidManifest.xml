@@ -70,7 +70,6 @@
             <meta-data
                 android:name="android.app.device_admin"
                 android:resource="@xml/device_admin_policy" />
-
             <intent-filter>
                 <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
                 <action android:name="android.app.action.DEVICE_ADMIN_DISABLE_REQUESTED" />
@@ -79,15 +78,20 @@
         </receiver>
 
         <service
-            android:name=".AppBlockerService"
+            android:name=".Service.AppBlockerService"
             android:foregroundServiceType="dataSync"
             android:exported="false"
-            android:enabled="true"></service>
+            android:enabled="true"/>
         <service
-            android:name=".DeviceBlockerService"
+            android:name=".Service.DeviceBlockerService"
             android:foregroundServiceType="dataSync"
             android:exported="false"
-            android:enabled="true"></service>
+            android:enabled="true"/>
+        <service
+            android:name=".Service.LocationService"
+            android:foregroundServiceType="location"
+            android:exported="false"
+            android:enabled="true"/>
     </application>
 
 </manifest>

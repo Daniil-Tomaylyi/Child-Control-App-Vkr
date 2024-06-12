@@ -1,4 +1,4 @@
-package com.example.childcontrol
+package com.example.childcontrol.Service
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -11,6 +11,8 @@ import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.example.childcontrol.LockScreenDeviceActivity
+import com.example.childcontrol.R
 import com.example.childcontrol.db.DeviceBannedTime
 import com.example.childcontrol.headchild.DeviceUsage
 import com.example.childcontrol.headchild.HeadChildFragmentRepository

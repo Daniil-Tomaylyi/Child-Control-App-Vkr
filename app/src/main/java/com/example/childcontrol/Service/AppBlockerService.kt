@@ -1,4 +1,4 @@
-package com.example.childcontrol
+package com.example.childcontrol.Service
 
 
 import android.app.Notification
@@ -13,6 +13,7 @@ import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.example.childcontrol.LockScreenDeviceActivity
 import com.example.childcontrol.applist.lockApp
 import com.example.childcontrol.headchild.HeadChildFragmentRepository
 import com.google.firebase.auth.FirebaseAuth

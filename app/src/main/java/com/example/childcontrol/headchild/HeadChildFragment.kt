@@ -17,7 +17,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
@@ -27,8 +26,9 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
-import com.example.childcontrol.AppBlockerService
-import com.example.childcontrol.DeviceBlockerService
+import com.example.childcontrol.Service.AppBlockerService
+import com.example.childcontrol.Service.DeviceBlockerService
+import com.example.childcontrol.Service.LocationService
 import com.example.childcontrol.R
 import com.example.childcontrol.admin.MyDeviceAdminReceiver
 import com.example.childcontrol.databinding.FragmentHeadChildBinding
@@ -36,13 +36,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.gun0912.tedpermission.PermissionListener
 import com.gun0912.tedpermission.normal.TedPermission
-import com.yandex.mapkit.MapKitFactory
-import com.yandex.mapkit.geometry.Point
-import com.yandex.mapkit.location.FilteringMode
-import com.yandex.mapkit.location.Location
-import com.yandex.mapkit.location.LocationListener
-import com.yandex.mapkit.location.LocationManager
-import com.yandex.mapkit.location.LocationStatus
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -51,17 +45,11 @@ import kotlinx.coroutines.withContext
 
 class HeadChildFragment : Fragment() {
     private lateinit var binding: FragmentHeadChildBinding
-    private val desired_accuracy = 0.0
-    private val minimal_time: Long = 1000
-    private val minimal_distance = 1.0
-    private val use_in_background = false
-    private var locationManager: LocationManager? = null
-    private var myLocationListener: LocationListener? = null
-    private var myLocation: Point? = null
     private lateinit var devicePolicyManager: DevicePolicyManager
     private lateinit var componentName: ComponentName
     private lateinit var notificationManager: NotificationManager
     private lateinit var appOps: AppOpsManager
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -74,12 +62,9 @@ class HeadChildFragment : Fragment() {
         }
 
         componentName = ComponentName(requireActivity(), MyDeviceAdminReceiver::class.java)
-        notificationManager = requireActivity().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        appOps = requireActivity().getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-        val mode = appOps.checkOpNoThrow(
-            AppOpsManager.OPSTR_GET_USAGE_STATS,
-            Process.myUid(), requireActivity().packageName
-        )
+        notificationManager =
+            requireActivity().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
         val mAuth = FirebaseAuth.getInstance()
         val database = FirebaseDatabase.getInstance()
         val headChildFragmentRepository = HeadChildFragmentRepository(mAuth, database)
@@ -94,26 +79,7 @@ class HeadChildFragment : Fragment() {
             )
         val HeadChildViewModel =
             ViewModelProvider(this, viewModelFactory)[HeadChildViewModel::class.java]
-
-
-        if (!devicePolicyManager.isAdminActive(componentName)) {
-            checkPermissionAdmin()
-        }
-        if (!Settings.canDrawOverlays(context)) {
-            checkPermissionsWindow()
-        }
-        if (!notificationManager.areNotificationsEnabled()) {
-            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-            intent.putExtra(Settings.EXTRA_APP_PACKAGE, context?.packageName)
-            context?.startActivity(intent)
-        }
-        if (ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED) {
-            checkPermissions()
-        }
-        if (mode != AppOpsManager.MODE_ALLOWED) {
-            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-        }
+        checkPermissions()
         HeadChildViewModel.updateAppList()
         HeadChildViewModel.usageDevice.observe(viewLifecycleOwner, Observer {
             if (it != null) {
@@ -125,7 +91,14 @@ class HeadChildFragment : Fragment() {
         HeadChildViewModel.updateUsageDevice()
         deviceLocker()
         appLocker()
+        locationUpdater()
         return binding.root
+    }
+
+    private fun locationUpdater() {
+        val intent = Intent(requireActivity(), LocationService::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        requireActivity().startForegroundService(intent)
     }
 
 
@@ -145,12 +118,12 @@ class HeadChildFragment : Fragment() {
     }
 
 
-
     private fun appLocker() {
         val intent = Intent(requireActivity(), AppBlockerService::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
         requireActivity().startForegroundService(intent)
     }
+
     private fun deviceLocker() {
         val intent = Intent(requireActivity(), DeviceBlockerService::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -178,9 +151,42 @@ class HeadChildFragment : Fragment() {
         startActivity(intent)
 
     }
+    private fun checkPermissions() = CoroutineScope(Dispatchers.Main).launch{
+        appOps = requireActivity().getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+        val mode = appOps.checkOpNoThrow(
+            AppOpsManager.OPSTR_GET_USAGE_STATS,
+            Process.myUid(), requireActivity().packageName
+        )
 
+        if (!devicePolicyManager.isAdminActive(componentName)) {
+            checkPermissionAdmin()
+        }
+        delay(10000)
+        if (!Settings.canDrawOverlays(context)) {
+            checkPermissionsWindow()
+        }
+        delay(10000)
+        if (!notificationManager.areNotificationsEnabled()) {
+            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+            intent.putExtra(Settings.EXTRA_APP_PACKAGE, context?.packageName)
+            context?.startActivity(intent)
+        }
+        delay(10000)
+        if (ContextCompat.checkSelfPermission(
+                requireActivity(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            checkPermissionsLocation()
+        }
+        delay(10000)
+        if (mode != AppOpsManager.MODE_ALLOWED) {
+            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+        }
+    }
 
-    private fun checkPermissions() {
+    private fun checkPermissionsLocation() {
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 try {
@@ -205,60 +211,6 @@ class HeadChildFragment : Fragment() {
                         .check()
                 }
             }
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        val mAuth = FirebaseAuth.getInstance()
-        val database = FirebaseDatabase.getInstance()
-        val headChildFragmentRepository = HeadChildFragmentRepository(mAuth, database)
-        val packageManager = requireActivity().packageManager
-        val usageStatsManager =
-            requireActivity().getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-        val viewModelFactory =
-            HeadChildViewModelFactory(
-                headChildFragmentRepository,
-                packageManager,
-                usageStatsManager
-            )
-        val HeadChildViewModel =
-            ViewModelProvider(this, viewModelFactory)[HeadChildViewModel::class.java]
-
-        MapKitFactory.initialize(this.requireContext());
-        locationManager = MapKitFactory.getInstance().createLocationManager()
-        myLocationListener = object : LocationListener {
-            override fun onLocationUpdated(location: Location) {
-                myLocation = location.position
-                //  Log.w("loc", "my location - ${myLocation?.latitude},${myLocation?.longitude}")
-                HeadChildViewModel.updateLocation(myLocation?.latitude, myLocation?.longitude)
-            }
-
-            override fun onLocationStatusUpdated(locationStatus: LocationStatus) {
-                if (locationStatus == LocationStatus.NOT_AVAILABLE) {
-                    //  Log.w("locavaible", "Местоположение недоступно")
-                }
-            }
-        }
-        subscribeToLocationUpdate()
-    }
-
-
-    override fun onStop() {
-        super.onStop()
-        locationManager?.unsubscribe(myLocationListener!!)
-    }
-
-    private fun subscribeToLocationUpdate() {
-        if (locationManager != null && myLocationListener != null) {
-            locationManager?.subscribeForLocationUpdates(
-                desired_accuracy,
-                minimal_time,
-                minimal_distance,
-                use_in_background,
-                FilteringMode.OFF,
-                myLocationListener!!
-            )
         }
     }
 }

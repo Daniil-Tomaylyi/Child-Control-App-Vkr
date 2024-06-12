@@ -43,13 +43,6 @@ class HeadChildFragmentRepository(
             geoFire.setLocation(userID, GeoLocation(latitude!!, longitude!!))
         }
     }
-
-    suspend fun removeLocation() {
-        withContext(Dispatchers.IO) {
-            geoFire.removeLocation(userID)
-        }
-    }
-
     fun getDeviceTimeLimitsLockStatus(callback: (String?) -> Unit) {
 
         deviceLimitTimeDeviceLockRef.addValueEventListener(object : ValueEventListener {
@@ -88,7 +81,6 @@ class HeadChildFragmentRepository(
             }
 
             override fun onCancelled(error: DatabaseError) {
-                // Log.w("devicelocstat", "Статус блокировки недоступен")
             }
         })
         return DeviceUsage
@@ -102,7 +94,7 @@ class HeadChildFragmentRepository(
             }
 
             override fun onCancelled(error: DatabaseError) {
-                // Log.w("devicelocstat", "Статус блокировки недоступен")
+
             }
         })
         return bannedTimeDevice
@@ -116,7 +108,6 @@ class HeadChildFragmentRepository(
             }
 
             override fun onCancelled(error: DatabaseError) {
-                // Log.w("devicelocstat", "Статус блокировки недоступен")
             }
         })
         return AppListLock

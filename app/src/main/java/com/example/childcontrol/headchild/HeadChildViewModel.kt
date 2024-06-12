@@ -13,15 +13,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.childcontrol.applist.lockApp
-import com.firebase.geofire.GeoFire
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.Dispatchers
-import android.util.Log
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
@@ -37,17 +29,6 @@ class HeadChildViewModel(
     private var _usageDevice = MutableLiveData<DeviceUsage?>()
     val usageDevice: LiveData<DeviceUsage?> get() = _usageDevice
     private val timer = Timer()
-    fun updateLocation(latitude: Double?, longitude: Double?) {
-        viewModelScope.launch {
-            repository.setLocation(latitude, longitude)
-        }
-    }
-
-    fun removeLocation() {
-        viewModelScope.launch {
-            repository.removeLocation()
-        }
-    }
 
     fun updateAppList() {
         timer.schedule(object : TimerTask() {

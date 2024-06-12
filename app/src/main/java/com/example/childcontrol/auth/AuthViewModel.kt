@@ -21,7 +21,9 @@ class AuthViewModel(private val mAuth: FirebaseAuth, private val database: Fireb
         super.onCleared()
         viewModelJob.cancel()
     }
+    private val userID = mAuth.currentUser?.uid
     private val DBRef = database.reference
+    private val listDataDB = listOf<String>("Child Info","Child position","Device is locked","appList","deviceUsage","lockAppList")
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
     var email = MutableLiveData<String?>()
     var pass = MutableLiveData<String?>()
@@ -67,14 +69,10 @@ class AuthViewModel(private val mAuth: FirebaseAuth, private val database: Fireb
                 _showProgressDialog.value = false
             } else {
                 withContext(Dispatchers.IO) {
-                    mAuth.signOut()
-                    mAuth.currentUser?.uid?.let {
-                        DBRef.child(it).setValue(null).addOnSuccessListener {
-                            Log.d("Firebase", "Удаление прошло успешно.")
-                        }.addOnFailureListener{
-                            Log.d("Firebase", "Ошибка при удалении данных.")
-                        }
+                    for (data in listDataDB){
+                        DBRef.child(data).child(userID!!).removeValue()
                     }
+                    mAuth.signOut()
                 }
                 _showErrorMessageEvent.value = false
                 _showProgressDialog.value = false

@@ -13,15 +13,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
-import com.example.childcontrol.AppBlockerService
-import com.example.childcontrol.DeviceBlockerService
+import com.example.childcontrol.Service.AppBlockerService
+import com.example.childcontrol.Service.DeviceBlockerService
 import com.example.childcontrol.R
+import com.example.childcontrol.Service.LocationService
 import com.example.childcontrol.admin.MyDeviceAdminReceiver
 import com.example.childcontrol.databinding.FragmentAuthBinding
 import com.example.childcontrol.databinding.FragmentDialogBinding
@@ -58,6 +58,7 @@ class AuthFragment : Fragment() {
         componentName = ComponentName(requireActivity(), MyDeviceAdminReceiver::class.java)
         val intentAppBlockerService = Intent(requireActivity(), AppBlockerService::class.java)
         val intentDeviceBlockerService = Intent(requireActivity(), DeviceBlockerService::class.java)
+        val intentLocationService = Intent(requireActivity(), LocationService::class.java)
         val mAuth = FirebaseAuth.getInstance()
         val database = FirebaseDatabase.getInstance()
         val viewModelFactory = AuthViewModelFactory(mAuth,database)
@@ -101,6 +102,7 @@ class AuthFragment : Fragment() {
                 if (userDeleteApp == "deleteapp") {
                     requireActivity().stopService(intentAppBlockerService)
                     requireActivity().stopService(intentDeviceBlockerService)
+                    requireActivity().stopService(intentLocationService)
                     devicePolicyManager.removeActiveAdmin(componentName)
                     val packageName = "com.example.childcontrol"
                     val intent = Intent(Intent.ACTION_DELETE)
