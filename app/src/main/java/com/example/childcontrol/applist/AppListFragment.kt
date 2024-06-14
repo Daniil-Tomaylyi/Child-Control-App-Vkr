@@ -17,31 +17,47 @@ import com.google.firebase.database.FirebaseDatabase
 class AppListFragment : Fragment() {
 
     private lateinit var binding: FragmentAppListBinding
+
     private lateinit var adapter: AppListAdapter
 
+    private lateinit var mAuth: FirebaseAuth
+
+    private lateinit var database: FirebaseDatabase
+
+    private lateinit var appListRepository: AppListRepository
+
+    private lateinit var viewModelFactory: AppListViewModelFactory
+
+    private lateinit var appListViewModel: AppListViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = DataBindingUtil.inflate(
             inflater,
             com.example.childcontrol.R.layout.fragment_app_list,
             container,
             false
         )
-        val mAuth = FirebaseAuth.getInstance()
-        val database = FirebaseDatabase.getInstance()
-        val viewModelFactory = AppListViewModelFactory(mAuth, database)
-        val appListViewModel =
+        mAuth = FirebaseAuth.getInstance()
+        database = FirebaseDatabase.getInstance()
+        appListRepository = AppListRepository(mAuth, database)
+        viewModelFactory = AppListViewModelFactory(appListRepository)
+        appListViewModel =
             ViewModelProvider(this, viewModelFactory)[AppListViewModel::class.java]
+        // Создание адаптера и установка его для RecyclerView
         adapter = AppListAdapter(appListViewModel)
         binding.appListView.adapter = adapter
+        // Установка LayoutManager для RecyclerView
         binding.appListView.layoutManager = LinearLayoutManager(context)
+        // Наблюдение за данными в ViewModel и обновление адаптера при изменении данных
         appListViewModel.appList.observe(viewLifecycleOwner, Observer {
             adapter.data = it ?: emptyList()
         })
+        // Получение списка приложений
         appListViewModel.getAppList()
+        // Возвращение корневого элемента привязки данных
         return binding.root
     }
 

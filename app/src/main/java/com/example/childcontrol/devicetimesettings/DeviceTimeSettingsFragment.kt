@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.childcontrol.R
 import com.example.childcontrol.databinding.FragmentDeviceTimeSettingsBinding
 import com.example.childcontrol.db.ChildDatabase
+import com.example.childcontrol.db.ChildDatabaseDao
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
 import com.google.firebase.auth.FirebaseAuth
@@ -23,27 +24,48 @@ import com.google.firebase.database.FirebaseDatabase
 
 class DeviceTimeSettingsFragment : Fragment() {
     private lateinit var binding: FragmentDeviceTimeSettingsBinding
-    private val limitHours = (0..23).map { "$it ч" }
+
     private lateinit var adapter: DeviceBannedTimeAdapter
+
     private lateinit var startTimePicker: MaterialTimePicker
+
     private lateinit var endTimePicker: MaterialTimePicker
+
+    private lateinit var mAuth: FirebaseAuth
+
+    private lateinit var database: FirebaseDatabase
+
+    private lateinit var deviceTimeSettingsRepository: DeviceTimeSettingsRepository
+
+    private lateinit var deviceTimeSettingsViewModelFactory: DeviceTimeSettingsViewModelFactory
+
+    private lateinit var deviceTimeSettingsViewModel: DeviceTimeSettingsViewModel
+
+    private lateinit var childDatabase: ChildDatabaseDao
+
+    private lateinit var arrayAdapter: ArrayAdapter<String>
+
+    private val limitHours = (0..23).map { "$it ч" }
+
     private var endHour: Int = 0
+
     private var endMinute: Int = 0
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
+    ): View {
         binding = DataBindingUtil.inflate(
             inflater,
             R.layout.fragment_device_time_settings, container, false
         )
-        val mAuth = FirebaseAuth.getInstance()
-        val database = FirebaseDatabase.getInstance()
-        val childDatabase = ChildDatabase.getInstance(requireContext()).childDatabaseDao
-        val deviceTimeSettingsViewModelFactory =
-            DeviceTimeSettingsViewModelFactory(mAuth, database, childDatabase)
-        val deviceTimeSettingsViewModel = ViewModelProvider(
+        mAuth = FirebaseAuth.getInstance()
+        database = FirebaseDatabase.getInstance()
+        childDatabase = ChildDatabase.getInstance(requireContext()).childDatabaseDao
+        deviceTimeSettingsRepository = DeviceTimeSettingsRepository(mAuth, database, childDatabase)
+        deviceTimeSettingsViewModelFactory =
+            DeviceTimeSettingsViewModelFactory(deviceTimeSettingsRepository)
+        deviceTimeSettingsViewModel = ViewModelProvider(
             this,
             deviceTimeSettingsViewModelFactory
         )[DeviceTimeSettingsViewModel::class.java]
@@ -55,7 +77,7 @@ class DeviceTimeSettingsFragment : Fragment() {
             showStartTimePicker(deviceTimeSettingsViewModel)
         }
         adapter = DeviceBannedTimeAdapter(deviceTimeSettingsViewModel)
-        val arrayAdapter =
+        arrayAdapter =
             ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, limitHours)
         arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.apply {
@@ -63,13 +85,16 @@ class DeviceTimeSettingsFragment : Fragment() {
             deviceBannedTimeRecyclerView.adapter = adapter
             deviceBannedTimeRecyclerView.layoutManager = LinearLayoutManager(context)
         }
+        // Наблюдение за изменениями в bannedTime и обновление адаптера при изменении данных
         deviceTimeSettingsViewModel.bannedTime.observe(viewLifecycleOwner, Observer {
             if (it!!.all { item -> item != null }) {
                 Log.w("BannedTimelist", it.size.toString())
                 adapter.data = it
             }
         })
+        // Получение запрещенного времени устройства
         deviceTimeSettingsViewModel.getDeviceBannedTime()
+        // Сохранение настроек времени устройства и переход к другому фрагменту при нажатии кнопки сохранения
         binding.settingsTimeDeviceSaveButton.setOnClickListener {
             deviceTimeSettingsViewModel.saveTimeSettings(binding.limitTimeDeviceSpinner.selectedItem.toString())
             it.findNavController()
@@ -78,6 +103,7 @@ class DeviceTimeSettingsFragment : Fragment() {
         return binding.root
     }
 
+    // Функция для отображения выбора времени начала блокировки
     private fun showStartTimePicker(deviceTimeSettingsViewModel: DeviceTimeSettingsViewModel) {
         startTimePicker = MaterialTimePicker.Builder()
             .setTitleText("Установите время начала блокировки")
@@ -93,10 +119,9 @@ class DeviceTimeSettingsFragment : Fragment() {
                 startTimePicker.minute
             )
         }
-
-
     }
 
+    // Функция для отображения выбора времени окончания блокировки
     private fun showEndTimePicker(
         deviceTimeSettingsViewModel: DeviceTimeSettingsViewModel,
         startHour: Int,
@@ -120,6 +145,7 @@ class DeviceTimeSettingsFragment : Fragment() {
             )
         }
     }
+
 
 
 }

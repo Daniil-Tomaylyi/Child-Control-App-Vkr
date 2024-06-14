@@ -2,7 +2,6 @@ package com.example.childcontrol.headparent
 
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -28,19 +27,40 @@ import com.yandex.mapkit.map.PlacemarkMapObject
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.runtime.image.ImageProvider
 import java.util.Calendar
-import kotlin.math.log
+
 
 
 class HeadParentFragment : Fragment() {
     private lateinit var binding: FragmentHeadParentBinding
+
     private lateinit var mapview: MapView
+
     private lateinit var mapObjectCollection: MapObjectCollection
+
     private lateinit var placemarkMapObject: PlacemarkMapObject
+
+    private lateinit var mAuth: FirebaseAuth
+
+    private lateinit var database: FirebaseDatabase
+
+    private lateinit var headParentRepository: HeadParentRepository
+
+    private lateinit var headParentviewModelFactory: HeadParentViewModelFactory
+
+    private lateinit var headParentViewModel: HeadParentViewModel
+
     private var zoomValue: Float = 16.5f
+
+    private var age: Int = 0
+
+    private var startLocation: Point? = null
+
+    private var marker: Int = 0
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        // Инициализация привязки данных
         binding = DataBindingUtil.inflate(
             inflater,
             com.example.childcontrol.R.layout.fragment_head_parent,
@@ -48,51 +68,69 @@ class HeadParentFragment : Fragment() {
             false
         )
 
-
+        // Инициализация карты
         mapview = binding.mapHeadParent
+
+        // Обработчики нажатия кнопок для перехода к другим фрагментам
         binding.buttonHeadParentMap.setOnClickListener { view: View ->
+            // Переход к фрагменту карты
             view.findNavController().navigate(R.id.action_headParentFragment_to_parentMapFragment)
         }
         binding.buttonLockApp.setOnClickListener {
+            // Переход к фрагменту списка приложений
             it.findNavController().navigate(R.id.action_headParentFragment_to_appListFragment)
         }
         binding.buttonAddChildHeadParent.setOnClickListener() {
+            // Переход к фрагменту добавления ребенка
             it.findNavController().navigate(
                 R.id.action_headParentFragment_to_addChildFragment,
                 bundleOf("role" to "parent")
             )
         }
         binding.buttonHeadParentSettings.setOnClickListener() {
+            // Переход к фрагменту настроек родителя
             it.findNavController()
                 .navigate(R.id.action_headParentFragment_to_settingsParentFragment)
         }
-        val mAuth = FirebaseAuth.getInstance()
-        val database = FirebaseDatabase.getInstance()
-        val HeadParentviewModelFactory = HeadParentViewModelFactory(mAuth, database)
-        val HeadParentViewModel =
-            ViewModelProvider(this, HeadParentviewModelFactory)[HeadParentViewModel::class.java]
-        binding.headParentViewModel = HeadParentViewModel
-        Log.w("statusswitchlock", HeadParentViewModel.DeviceLock.value.toString())
-        HeadParentViewModel.infoChild.observe(viewLifecycleOwner, Observer {
+
+        // Инициализация FirebaseAuth, FirebaseDatabase и ViewModel
+        mAuth = FirebaseAuth.getInstance()
+        database = FirebaseDatabase.getInstance()
+        headParentRepository = HeadParentRepository(mAuth, database)
+        headParentviewModelFactory = HeadParentViewModelFactory(headParentRepository)
+        headParentViewModel =
+            ViewModelProvider(this, headParentviewModelFactory)[HeadParentViewModel::class.java]
+        binding.headParentViewModel = headParentViewModel
+
+        // Наблюдение за изменениями в LiveData объектах ViewModel и обновление UI
+        headParentViewModel.infoChild.observe(viewLifecycleOwner, Observer {
             if (it != null) {
+                // Если информация о ребенке доступна, скрываем кнопку добавления ребенка
                 binding.buttonAddChildHeadParent.visibility = View.GONE
-                val age = Calendar.getInstance().get(Calendar.YEAR) - it.yearBirth.toInt()
+                // Вычисляем возраст ребенка
+                age = Calendar.getInstance().get(Calendar.YEAR) - it.yearBirth.toInt()
+                // Отображаем информацию о ребенке
                 binding.textInfoChild.text = "${it.name} ${age} лет"
                 binding.textInfoChild.visibility = View.VISIBLE
             }
         })
-        HeadParentViewModel.getChildInfo()
-        HeadParentViewModel.locationChild.observe(viewLifecycleOwner, Observer {
+        // Получаем информацию о ребенке
+        headParentViewModel.getChildInfo()
+        headParentViewModel.locationChild.observe(viewLifecycleOwner, Observer {
             if (it != null) {
-                val startLocation = Point(it.latitude, it.longitude)
-                moveToStartLocation(startLocation)
-                setMarkerInStartLocation(startLocation)
+                // Если доступна геолокация ребенка, перемещаемся к этой локации на карте
+                startLocation = Point(it.latitude, it.longitude)
+                moveToStartLocation(startLocation!!)
+                // Устанавливаем маркер в этой локации
+                setMarkerInStartLocation(startLocation!!)
             }
         })
-        HeadParentViewModel.appList.observe(viewLifecycleOwner, Observer {
+        headParentViewModel.appList.observe(viewLifecycleOwner, Observer {
+            // Сортируем список приложений по времени использования
             val sortedAppList =
                 it?.sortedWith(compareByDescending<AppInfo> { it.usageHours }.thenByDescending { it.usageMinutes })
                     ?.take(3)
+            // Отображаем три самых используемых приложения
             val textApps = listOf(binding.textAppStat1, binding.textAppStat2, binding.textAppStat3)
             if (sortedAppList != null) {
                 sortedAppList.forEachIndexed { i, app ->
@@ -104,18 +142,23 @@ class HeadParentFragment : Fragment() {
 
             }
         })
-        HeadParentViewModel.getAppList()
-        HeadParentViewModel.usageDevice.observe(viewLifecycleOwner, Observer {
+        // Получаем список приложений
+        headParentViewModel.getAppList()
+        headParentViewModel.usageDevice.observe(viewLifecycleOwner, Observer {
             if (it != null) {
+                // Отображаем общее время использования устройства
                 binding.timeSpentDeviceValueText.text =
                     "часов: ${it.usageHours} минут: ${it.usageMinutes}"
             }
         })
-        HeadParentViewModel.getDeviceUsage()
+        // Получаем информацию об использовании устройства
+        headParentViewModel.getDeviceUsage()
+        // Устанавливаем обработчик переключателя блокировки устройства
         binding.switchlockdevice.setOnCheckedChangeListener { _, isChecked ->
-            HeadParentViewModel.setLockDeviceState(isChecked)
+            headParentViewModel.setLockDeviceState(isChecked)
         }
-        HeadParentViewModel.getLocation()
+        // Получаем геолокацию ребенка
+        headParentViewModel.getLocation()
 
         return binding.root
 
@@ -124,29 +167,33 @@ class HeadParentFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
+        // Останавливаем карту при остановке фрагмента
         mapview.onStop()
         MapKitFactory.getInstance().onStop()
     }
 
     override fun onStart() {
         super.onStart()
+        // Запускаем карту при старте фрагмента
         MapKitFactory.getInstance().onStart()
         mapview.onStart()
     }
 
-    private fun moveToStartLocation(Location: Point) {
+    private fun moveToStartLocation(location: Point) {
+        // Перемещаем камеру к указанной локации
         mapview.map.move(
-            CameraPosition(Location, zoomValue, 0.0f, 0.0f), Animation(Animation.Type.SMOOTH, 5f),
+            CameraPosition(location, zoomValue, 0.0f, 0.0f), Animation(Animation.Type.SMOOTH, 5f),
             null
         )
     }
 
-    private fun setMarkerInStartLocation(Location: Point) {
-        val marker = R.drawable.ic_pin_black // Добавляем ссылку на картинку
+    private fun setMarkerInStartLocation(location: Point) {
+        // Устанавливаем маркер в указанной локации
+        marker = R.drawable.ic_pin_black // Добавляем ссылку на картинку
         mapObjectCollection =
             mapview.map.mapObjects // Инициализируем коллекцию различных объектов на карте
         placemarkMapObject = mapObjectCollection.addPlacemark(
-            Location,
+            location,
             ImageProvider.fromResource(this.requireContext(), marker)
         ) // Добавляем метку со значком
         placemarkMapObject.opacity = 0.5f // Устанавливаем прозрачность метке

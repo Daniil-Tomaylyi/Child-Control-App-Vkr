@@ -1,6 +1,5 @@
 package com.example.childcontrol.devicetimesettings
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
@@ -36,19 +35,13 @@ class DeviceBannedTimeAdapter(private val DeviceTimeSettingsViewModel: DeviceTim
 
     override fun getItemCount(): Int = data.size
 
-
     override fun onBindViewHolder(holder: DeviceBannedTimeViewHolder, position: Int) {
         val BannedTimelist = data[position]
-        Log.w("BannedTimelist", data.size.toString())
         val startTimeHours = String.format("%02d", BannedTimelist.start_time_hours)
         val startTimeMinutes = String.format("%02d", BannedTimelist.start_time_minutes)
         val endTimeHours = String.format("%02d", BannedTimelist.end_time_hours)
         val endTimeMinutes = String.format("%02d", BannedTimelist.end_time_minutes)
         val context = holder.itemView.context
-        Log.w(
-            "BannedTimelist",
-            "${BannedTimelist.start_time_hours}:${BannedTimelist.start_time_minutes} - ${BannedTimelist.end_time_hours}:${BannedTimelist.end_time_minutes}"
-        )
         with(holder.binding) {
             deviceBannedTimeText.text = context.getString(
                 R.string.banned_time,
@@ -57,12 +50,14 @@ class DeviceBannedTimeAdapter(private val DeviceTimeSettingsViewModel: DeviceTim
                 endTimeHours,
                 endTimeMinutes
             )
+            // Удаление времени блокировки при нажатии на кнопку удаления
             deleteDeviceBannedTimeButton.setOnClickListener {
                 DeviceTimeSettingsViewModel.delDeviceBannedTime(
                     BannedTimelist.uid,
                     BannedTimelist.id
                 )
             }
+            // Отображение диалога редактирования времени блокировки при нажатии на кнопку изменения
             changeDeviceBannedTimeButton.setOnClickListener {
                 showEditStartTimePicker(
                     DeviceTimeSettingsViewModel,
@@ -74,6 +69,7 @@ class DeviceBannedTimeAdapter(private val DeviceTimeSettingsViewModel: DeviceTim
     }
 }
 
+// Функция для отображения диалога выбора времени начала блокировки
 private fun showEditStartTimePicker(
     deviceTimeSettingsViewModel: DeviceTimeSettingsViewModel,
     bannedTimeList: DeviceBannedTime,
@@ -95,10 +91,9 @@ private fun showEditStartTimePicker(
             childFragmentManager
         )
     }
-
-
 }
 
+// Функция для отображения диалога выбора времени окончания блокировки
 fun showEditEndTimePicker(
     deviceTimeSettingsViewModel: DeviceTimeSettingsViewModel,
     startEditHour: Int,
@@ -126,3 +121,4 @@ fun showEditEndTimePicker(
         )
     }
 }
+

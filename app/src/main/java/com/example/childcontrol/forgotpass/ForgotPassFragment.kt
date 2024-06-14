@@ -10,28 +10,38 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.example.childcontrol.R
-import com.example.childcontrol.auth.AuthViewModel
-import com.example.childcontrol.auth.AuthViewModelFactory
 import com.example.childcontrol.databinding.FragmentForgotPassBinding
 import com.google.firebase.auth.FirebaseAuth
 
+
+// Фрагмент для функционала восстановления пароля
 class ForgotPassFragment : Fragment() {
     private lateinit var binding: FragmentForgotPassBinding
+    private lateinit var mAuth: FirebaseAuth
+    private lateinit var forgotPassRepository: ForgotPassRepository
+    private lateinit var viewModelFactory: ForgotPassViewModelFactory
+    private lateinit var forgotPassViewModel: ForgotPassViewModel
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_forgot_pass, container, false)
-        val mAuth = FirebaseAuth.getInstance()
-        val viewModelFactory = ForgotPassViewModelFactory(mAuth)
-        val ForgotPassViewModel =
+        mAuth = FirebaseAuth.getInstance()
+        forgotPassRepository = ForgotPassRepository(mAuth)
+        viewModelFactory = ForgotPassViewModelFactory(forgotPassRepository)
+        forgotPassViewModel =
             ViewModelProvider(this, viewModelFactory)[ForgotPassViewModel::class.java]
-        binding.forgotPassViewModel = ForgotPassViewModel
-        ForgotPassViewModel.showErrorMessageEvent.observe(viewLifecycleOwner, Observer {
+        // Привязка ViewModel к макету
+        binding.forgotPassViewModel = forgotPassViewModel
+        // Наблюдение за событием ошибки и обновление интерфейса в соответствии с ним
+        forgotPassViewModel.showErrorMessageEvent.observe(viewLifecycleOwner, Observer {
             if (it == true)
+            // Если есть ошибка, показываем сообщение об ошибке
                 binding.errorMsgForgotPass.visibility = View.VISIBLE
             else
+            // Если ошибки нет, переходим к фрагменту авторизации
                 this.findNavController()
                     .navigate(ForgotPassFragmentDirections.actionForgotPassFragmentToAuthFragment())
         })

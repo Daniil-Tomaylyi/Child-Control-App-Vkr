@@ -21,15 +21,19 @@ import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.TimeUnit
 
+
 class HeadChildViewModel(
-    private val repository: HeadChildFragmentRepository,
-    private val packageManager: PackageManager,
-    private val usageStatsManager: UsageStatsManager
+    private val repository: HeadChildFragmentRepository, // Репозиторий
+    private val packageManager: PackageManager, // Менеджер пакетов
+    private val usageStatsManager: UsageStatsManager // Менеджер статистики использования
 ) : ViewModel() {
+    // LiveData для хранения данных об использовании устройства
     private var _usageDevice = MutableLiveData<DeviceUsage?>()
     val usageDevice: LiveData<DeviceUsage?> get() = _usageDevice
+    // Таймер для периодического обновления данных
     private val timer = Timer()
 
+    // Функция для обновления списка приложений
     fun updateAppList() {
         timer.schedule(object : TimerTask() {
             override fun run() {
@@ -37,11 +41,11 @@ class HeadChildViewModel(
                     val appList = getAppList()
                     repository.updateAppList(appList)
                 }
-
             }
         }, 0, 10000) // Запуск каждую минуту
     }
 
+    // Функция для обновления данных об использовании устройства
     fun updateUsageDevice() {
         timer.schedule(object : TimerTask() {
             override fun run() {
@@ -53,6 +57,7 @@ class HeadChildViewModel(
         }, 0, 10000) // Запуск каждую минуту
     }
 
+    // Функция для получения данных об использовании устройства
     suspend fun getUsageDevice(): DeviceUsage = withContext(Dispatchers.IO) {
         val appList = getAppList()
         var usageHours = 0L
@@ -66,6 +71,7 @@ class HeadChildViewModel(
         DeviceUsage(usageHours, usageMinutes)
     }
 
+    // Функция для получения списка приложений
     suspend fun getAppList(): List<AppInfo> = withContext(Dispatchers.IO) {
         val endTime = System.currentTimeMillis()
         val startTime = endTime - 1000 * 3600 * 24
@@ -92,6 +98,7 @@ class HeadChildViewModel(
             }
     }
 
+    // Функция для преобразования Drawable в Base64
     private fun drawableToBase64(drawable: Drawable): String {
         val bitmap = if (drawable is BitmapDrawable) {
             drawable.bitmap
@@ -112,6 +119,4 @@ class HeadChildViewModel(
         val bytes = stream.toByteArray()
         return Base64.encodeToString(bytes, Base64.DEFAULT)
     }
-
-
 }

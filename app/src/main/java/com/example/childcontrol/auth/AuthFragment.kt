@@ -32,90 +32,123 @@ import com.google.firebase.database.FirebaseDatabase
 class AuthFragment : Fragment() {
 
     private lateinit var binding: FragmentAuthBinding
+
     private lateinit var devicePolicyManager: DevicePolicyManager
+
     private lateinit var componentName: ComponentName
+
     private lateinit var dialogBinding: FragmentDialogBinding
+
+    private lateinit var mAuth: FirebaseAuth
+
+    private lateinit var database: FirebaseDatabase
+
+    private lateinit var authRepository: AuthRepository
+
+    private lateinit var intentAppBlockerService: Intent
+
+    private lateinit var intentDeviceBlockerService: Intent
+
+    private lateinit var intentLocationService: Intent
+
+    private lateinit var intent: Intent
+
+    private lateinit var viewModelFactory: AuthViewModelFactory
+
+    private val delay = 500
+
+    private lateinit var authViewModel: AuthViewModel
+
+    private var userDeleteApp: String? = null
+
+    private var packageName: String? = null
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_auth, container, false)
         binding.buttonAuthCreate.setOnClickListener { view: View ->
+            // Переход к фрагменту регистрации
             view.findNavController().navigate(R.id.action_authFragment_to_regFragment)
         }
         binding.passRec.setOnClickListener { view: View ->
+            // Переход к фрагменту восстановления пароля
             view.findNavController().navigate(R.id.action_authFragment_to_forgotPassFragment)
         }
-        val userDeleteApp = requireArguments().getString("typeAuth")
+        // Получение типа авторизации
+        userDeleteApp = requireArguments().getString("typeAuth")
+        // Инициализация привязки данных для диалогового окна
         dialogBinding = DataBindingUtil.inflate(
             LayoutInflater.from(requireContext()),
             R.layout.fragment_dialog,
             null,
             false
         )
+        // Инициализация менеджера политики устройства и компонента
         devicePolicyManager =
             activity?.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
         componentName = ComponentName(requireActivity(), MyDeviceAdminReceiver::class.java)
-        val intentAppBlockerService = Intent(requireActivity(), AppBlockerService::class.java)
-        val intentDeviceBlockerService = Intent(requireActivity(), DeviceBlockerService::class.java)
-        val intentLocationService = Intent(requireActivity(), LocationService::class.java)
-        val mAuth = FirebaseAuth.getInstance()
-        val database = FirebaseDatabase.getInstance()
-        val viewModelFactory = AuthViewModelFactory(mAuth,database)
-        val delay = 500
-        val AuthViewModel = ViewModelProvider(this, viewModelFactory)[AuthViewModel::class.java]
-        binding.authViewModel = AuthViewModel
+        // Инициализация намерений для служб
+        intentAppBlockerService = Intent(requireActivity(), AppBlockerService::class.java)
+        intentDeviceBlockerService = Intent(requireActivity(), DeviceBlockerService::class.java)
+        intentLocationService = Intent(requireActivity(), LocationService::class.java)
+        // Инициализация Firebase Auth и базы данных
+        mAuth = FirebaseAuth.getInstance()
+        database = FirebaseDatabase.getInstance()
+        // Инициализация репозитория и модели представления
+        authRepository = AuthRepository(mAuth, database)
+        viewModelFactory = AuthViewModelFactory(authRepository)
+        authViewModel = ViewModelProvider(this, viewModelFactory)[AuthViewModel::class.java]
+        binding.authViewModel = authViewModel
+        // Настройка интерфейса в зависимости от типа авторизации
         if (userDeleteApp == "deleteapp") {
             binding.passRec.visibility = View.GONE
             dialogBinding.progressText = "Удаление\nпожалуйста подождите"
             binding.buttonAuthCreate.visibility = View.GONE
-        }
-        else {
+        } else {
             dialogBinding.progressText = "Авторизация\nпожалуйста подождите"
         }
+        // Создание диалогового окна
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogBinding.root)
             .setCancelable(false)
             .create()
-
-
-        AuthViewModel.showProgressDialog.observe(viewLifecycleOwner, Observer {
+        // Наблюдение за изменениями в модели представления
+        authViewModel.showProgressDialog.observe(viewLifecycleOwner, Observer {
             if (it == true)
                 dialog.show()
             else
                 Handler(Looper.getMainLooper()).postDelayed({ dialog.dismiss() }, delay.toLong())
         })
-        binding.buttonLoginAuth.setOnClickListener{
-            if (userDeleteApp == "deleteapp"){
-                AuthViewModel.delete_app()
-            }
-            else{
-                AuthViewModel.sign_in()
+        binding.buttonLoginAuth.setOnClickListener {
+            if (userDeleteApp == "deleteapp") {
+                authViewModel.deleteApp()
+            } else {
+                authViewModel.signIn()
             }
         }
-
-
-        AuthViewModel.showErrorMessageEvent.observe(viewLifecycleOwner, Observer {
+        authViewModel.showErrorMessageEvent.observe(viewLifecycleOwner, Observer {
             if (it == true)
                 binding.errorMsgAuth.visibility = View.VISIBLE
             else {
                 if (userDeleteApp == "deleteapp") {
+                    // Остановка служб и удаление приложения
                     requireActivity().stopService(intentAppBlockerService)
                     requireActivity().stopService(intentDeviceBlockerService)
                     requireActivity().stopService(intentLocationService)
                     devicePolicyManager.removeActiveAdmin(componentName)
-                    val packageName = "com.example.childcontrol"
-                    val intent = Intent(Intent.ACTION_DELETE)
+                    packageName = "com.example.childcontrol"
+                    intent = Intent(Intent.ACTION_DELETE)
                     intent.data = Uri.parse("package:$packageName")
                     startActivity(intent)
                 } else {
+                    // Переход к следующему фрагменту
                     this.findNavController()
                         .navigate(AuthFragmentDirections.actionAuthFragmentToRoleFragment())
-
                 }
             }
         })
         return binding.root
-
     }
+
 }

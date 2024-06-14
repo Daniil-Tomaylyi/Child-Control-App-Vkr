@@ -1,38 +1,34 @@
 package com.example.childcontrol.addchild
 
+
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
-import kotlinx.coroutines.CoroutineScope
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
-class AddChildViewModel(private val mAuth: FirebaseAuth, private val database: FirebaseDatabase) :
+
+
+class AddChildViewModel(private val repository: AddChildRepository) :
     ViewModel() {
-    private var viewModelJob = Job()
-    override fun onCleared() {
-        super.onCleared()
-        viewModelJob.cancel()
-    }
-
-    private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
-    private val userID = mAuth.currentUser?.uid
-    private val ChildInfoRef = database.reference.child("Child Info").child(userID!!)
+    // Объявление переменных для хранения имени и года рождения ребенка
     var name = MutableLiveData<String?>()
     var yearBirth = MutableLiveData<String?>()
+
+    // Объявление переменной для отслеживания готовности к навигации
     private var _isReadyToNavigate = MutableLiveData<Boolean?>()
     val isReadyToNavigate: LiveData<Boolean?> get() = _isReadyToNavigate
+
+    // Определение функции getChildInfo, которая асинхронно получает информацию о ребенке
     fun getChildInfo() {
-        uiScope.launch {
+        // Запуск корутины внутри области видимости ViewModel
+        viewModelScope.launch(Dispatchers.Main) {
+            // Установка значения _isReadyToNavigate в true
             _isReadyToNavigate.value = true
-            withContext(Dispatchers.IO) {
-                ChildInfoRef.setValue(ChildInfo(name.value!!, yearBirth.value!!))
-            }
+
+            // Получение информации о ребенке из репозитория
+            repository.getInfo(name.value!!, yearBirth.value!!)
         }
     }
-
 }

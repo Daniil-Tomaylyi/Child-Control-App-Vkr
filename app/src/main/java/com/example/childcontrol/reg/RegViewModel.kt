@@ -4,70 +4,52 @@ import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import kotlinx.coroutines.CoroutineScope
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 
-class RegViewModel(private val mAuth: FirebaseAuth, private val database: FirebaseDatabase) :
+class RegViewModel(private val repository: RegRepository) :
     ViewModel() {
-    private var viewModelJob = Job()
-    override fun onCleared() {
-        super.onCleared()
-        viewModelJob.cancel()
-    }
-
-    private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
+    // Инициализация переменных для хранения email и пароля
     val email = MutableLiveData<String?>()
     val pass = MutableLiveData<String?>()
+
+    // Инициализация переменных для управления отображением сообщений об ошибках и ProgressDialog
     private var _showErrorMessageEvent = MutableLiveData<Boolean?>()
     val showErrorMessageEvent: LiveData<Boolean?>
         get() = _showErrorMessageEvent
     private var _showProgressDialog = MutableLiveData<Boolean?>()
     val showProgressDialog: LiveData<Boolean?>
         get() = _showProgressDialog
-    private var firebaseUserID = MutableLiveData<String>()
-    private var refUsers = MutableLiveData<DatabaseReference>()
-    private var userHashMap = HashMap<String, Any>()
-    val passwordPattern = Regex("(?=.*[0-9])(?=.*[a-z])(?=\\S+$).{8,}")
+
+    // Регулярное выражение для проверки пароля
+    private val passwordPattern = Regex("(?=.*[0-9])(?=.*[a-z])(?=\\S+$).{8,}")
+
+    // Функция для регистрации пользователя
     fun Sign_up() {
         _showProgressDialog.value = true
-        uiScope.launch {
+        viewModelScope.launch(Dispatchers.Main) {
+            // Проверка введенных данных
             if (check_reg_data()) {
+                // Если данные корректны, производим регистрацию
                 _showErrorMessageEvent.value = false
                 _showProgressDialog.value = false
-                insert(email.value!!, pass.value!!)
+                repository.insert(email.value!!, pass.value!!)
             } else {
+                // Если данные некорректны, показываем сообщение об ошибке
                 _showErrorMessageEvent.value = true
                 _showProgressDialog.value = false
             }
         }
     }
 
+    // Функция для проверки введенных данных
     private fun check_reg_data(): Boolean {
         return (email.value != "" && pass.value != "" && email.value?.let {
             Patterns.EMAIL_ADDRESS.matcher(
                 it
             ).matches()
         } == true && pass.value?.matches(passwordPattern) == true)
-    }
-
-    private suspend fun insert(email: String, pass: String) {
-        withContext(Dispatchers.IO) {
-            mAuth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener() {
-                firebaseUserID.value = mAuth.currentUser?.uid
-                refUsers.value = database.reference.child("Users").child(
-                    firebaseUserID.value!!
-                )
-                userHashMap["uid"] = firebaseUserID.value!!
-                userHashMap["email"] = email
-                refUsers.value?.updateChildren(userHashMap)
-            }
-        }
     }
 }

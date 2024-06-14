@@ -19,36 +19,38 @@ class MainActivity : AppCompatActivity() {
     private lateinit var editor: Editor
 
     private lateinit var sharedPreferencesRoles: SharedPreferences
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         sharedPreferencesRoles = getSharedPreferences("MyRoles", Context.MODE_PRIVATE)
         navController = findNavController(R.id.NavHostFragment)
-        val role = sharedPreferencesRoles.getString("role", "")
-        when (role) {
+
+        // В зависимости от роли пользователя, переходим к соответствующему фрагменту
+        when (sharedPreferencesRoles.getString("role", "")) {
             "parent" -> navController.navigate(R.id.headParentFragment)
             "child" -> navController.navigate(R.id.headChildFragment)
             "addChild" -> navController.navigate(R.id.addChildFragment)
             else -> {
-                FirebaseAuth.getInstance().currentUser?.let { user ->
+                FirebaseAuth.getInstance().currentUser?.let {
+                    // Если пользователь авторизован, переходим к фрагменту роли
                     navController.navigate(R.id.roleFragment)
                 } ?: run {
                     if (sharedPreferences.getBoolean("isFirstRun", true)) {
-                        // Отображаем фрагмент приветствия
+                        // Если это первый запуск, отображаем фрагмент приветствия
                         navController.navigate(R.id.startFragment)
                         // Устанавливаем флаг первого запуска в false
                         editor = sharedPreferences.edit()
                         editor.putBoolean("isFirstRun", false)
                         editor.apply()
                     } else {
-                        // Отображаем другой фрагмент при последующих запусках приложения
+                        // Если это не первый запуск, отображаем другой фрагмент
                         navController.navigate(R.id.tittleFragment)
                     }
                 }
             }
         }
-
     }
-
 }

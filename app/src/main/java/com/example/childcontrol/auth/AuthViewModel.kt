@@ -1,32 +1,19 @@
 package com.example.childcontrol.auth
 
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
-import kotlinx.coroutines.CoroutineScope
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
-class AuthViewModel(private val mAuth: FirebaseAuth, private val database: FirebaseDatabase) : ViewModel() {
-
-    private var viewModelJob = Job()
-
-    override fun onCleared() {
-        super.onCleared()
-        viewModelJob.cancel()
-    }
-    private val userID = mAuth.currentUser?.uid
-    private val DBRef = database.reference
-    private val listDataDB = listOf<String>("Child Info","Child position","Device is locked","appList","deviceUsage","lockAppList")
-    private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
+class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
+    // Объявление переменных для хранения данных почты и пароля
     var email = MutableLiveData<String?>()
     var pass = MutableLiveData<String?>()
+
+    // Объявление переменных для отображения ошибок и ProgressDialog
     private var _showErrorMessageEvent = MutableLiveData<Boolean?>()
     val showErrorMessageEvent: LiveData<Boolean?>
         get() = _showErrorMessageEvent
@@ -34,52 +21,42 @@ class AuthViewModel(private val mAuth: FirebaseAuth, private val database: Fireb
     val showProgressDialog: LiveData<Boolean?>
         get() = _showProgressDialog
 
+    // Переменная для хранения событий
+    private var showEvents: Pair<Boolean?, Boolean?>? = null
 
-
-    fun sign_in() {
-        uiScope.launch {
+    // Функция для входа в систему
+    fun signIn() {
+        viewModelScope.launch(Dispatchers.Main) {
+            // Показываем прогресс
             _showProgressDialog.value = true
             if (email.value == null || pass.value == null) {
+                // Если данные для входа отсутствуют, показываем сообщение об ошибке
                 _showErrorMessageEvent.value = true
                 _showProgressDialog.value = false
             } else {
-                withContext(Dispatchers.IO) {
-                    mAuth.signInWithEmailAndPassword(email.value!!, pass.value!!)
-                        .addOnCompleteListener() {
-                            if (it.isSuccessful) {
-                                _showErrorMessageEvent.value = false
-                                _showProgressDialog.value = false
-                            } else {
-                                _showErrorMessageEvent.value = true
-                                _showProgressDialog.value = false
-                            }
-
-
-                        }
-                }
+                // Если данные для входа присутствуют, выполняем вход
+                showEvents = repository.signIn(email.value!!, pass.value!!)
+                _showErrorMessageEvent.value = showEvents!!.first
+                _showProgressDialog.value = showEvents!!.second
             }
-
         }
     }
-    fun delete_app(){
-        uiScope.launch {
+
+    // Функция для удаления приложения
+    fun deleteApp() {
+        viewModelScope.launch(Dispatchers.Main) {
+            // Показываем прогресс
             _showProgressDialog.value = true
             if (email.value == null || pass.value == null) {
+                // Если данные для входа отсутствуют, показываем сообщение об ошибке
                 _showErrorMessageEvent.value = true
                 _showProgressDialog.value = false
             } else {
-                withContext(Dispatchers.IO) {
-                    for (data in listDataDB){
-                        DBRef.child(data).child(userID!!).removeValue()
-                    }
-                    mAuth.signOut()
-                }
+                // Если данные для входа присутствуют, удаляем приложение
+                repository.deleteApp()
                 _showErrorMessageEvent.value = false
                 _showProgressDialog.value = false
             }
-
         }
     }
-
-
 }

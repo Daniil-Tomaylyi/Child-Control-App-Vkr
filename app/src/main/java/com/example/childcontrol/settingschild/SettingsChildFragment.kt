@@ -19,30 +19,40 @@ class SettingsChildFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding =
             DataBindingUtil.inflate(inflater, R.layout.fragment_settings_child, container, false)
+        // Настройка обработчиков нажатия кнопок
         binding.buttonInfoAppChild.setOnClickListener {
+            // Переход к фрагменту информации о приложении
             it.findNavController().navigate(R.id.action_settingsChildFragment_to_infoAppFragment)
         }
         binding.buttonHeadChildSettingsTittle.setOnClickListener {
+            // Переход к фрагменту настроек ребенка
             it.findNavController().navigate(R.id.action_settingsChildFragment_to_headChildFragment)
         }
-        binding.buttonDeleteAppChild.setOnClickListener{
-            it.findNavController().navigate(R.id.action_settingsChildFragment_to_authFragment, bundleOf("typeAuth" to "deleteapp"))
+        binding.buttonDeleteAppChild.setOnClickListener {
+            // Переход к фрагменту авторизации с параметром для удаления приложения
+            it.findNavController().navigate(
+                R.id.action_settingsChildFragment_to_authFragment,
+                bundleOf("typeAuth" to "deleteapp")
+            )
         }
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // Установка обработчика изменения переключателя темы
         binding.changeThemeChildSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
+                // Если переключатель включен, устанавливаем ночной режим
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-
             } else {
+                // Если переключатель выключен, устанавливаем дневной режим
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
             }
         }
     }
+
 }

@@ -4,8 +4,6 @@ import android.app.usage.UsageStatsManager
 import android.content.pm.PackageManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
 
 class HeadChildViewModelFactory(
     private val repository: HeadChildFragmentRepository,
